@@ -65,7 +65,7 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
 <div id="hdr">
   <div style="font-size:13px;font-weight:800;color:#f5c842;">&#128176;<span id="mdisp">200</span></div>
   <div style="font-size:13px;font-weight:900;color:#f5c842;">&#127880; Balloon Blitz TD</div>
-  <div style="font-size:13px;font-weight:800;color:#ff6b6b;">&#10084;<span id="ldisp">20</span>&nbsp;<span style="color:#94a3b8;font-size:11px">W<span id="wdisp">0</span>/<span id="wmaxdisp">10</span></span></div>
+  <div style="font-size:13px;font-weight:800;color:#ff6b6b;">&#10084;<span id="ldisp">100</span>&nbsp;<span style="color:#94a3b8;font-size:11px">W<span id="wdisp">0</span>/<span id="wmaxdisp">10</span></span></div>
 </div>
 <div id="bossbar">
   <div class="bossbar-inner">
@@ -223,21 +223,21 @@ var FARM_DEF={cost:150,name:'Bank',baseIncome:15,
   upgrades:['Savings Account +$10/wave','Investment Fund +$20/wave','Vault Max +$35/wave'],
   upgCosts:[120,180,300]};
 var BT=[
-  {col:'#ef4444',hp:1,spd:1.2,rew:1,sz:14,name:'Red'},
-  {col:'#3b82f6',hp:2,spd:1.1,rew:2,sz:15,name:'Blue'},
-  {col:'#22c55e',hp:3,spd:1.0,rew:3,sz:16,name:'Green'},
-  {col:'#f59e0b',hp:5,spd:.9,rew:5,sz:17,name:'Yellow'},
-  {col:'#a855f7',hp:8,spd:.85,rew:8,sz:17,name:'Purple'},
-  {col:'#ec4899',hp:14,spd:.8,rew:12,sz:19,name:'Pink'},
-  {col:'#06b6d4',hp:25,spd:.75,rew:18,sz:21,name:'Cyan'},
-  {col:'#f43f5e',hp:45,spd:.68,rew:25,sz:22,name:'White'},
-  {col:'#334155',hp:90,spd:.62,rew:40,sz:24,name:'Black'},
-  {col:'#fbbf24',hp:180,spd:.56,rew:80,sz:29,moab:true,name:'MOAB'}
+  {col:'#ef4444',hp:1, spd:1.2,rew:1, sz:14,name:'Red',   leak:1},
+  {col:'#3b82f6',hp:2, spd:1.1,rew:2, sz:15,name:'Blue',  leak:2},
+  {col:'#22c55e',hp:3, spd:1.0,rew:3, sz:16,name:'Green', leak:3},
+  {col:'#f59e0b',hp:5, spd:.9, rew:5, sz:17,name:'Yellow',leak:5},
+  {col:'#a855f7',hp:8, spd:.85,rew:8, sz:17,name:'Purple',leak:8},
+  {col:'#ec4899',hp:14,spd:.8, rew:12,sz:19,name:'Pink',  leak:12},
+  {col:'#06b6d4',hp:25,spd:.75,rew:18,sz:21,name:'Cyan',  leak:18},
+  {col:'#f43f5e',hp:45,spd:.68,rew:25,sz:22,name:'White', leak:25},
+  {col:'#334155',hp:90,spd:.62,rew:40,sz:24,name:'Black', leak:40},
+  {col:'#fbbf24',hp:180,spd:.56,rew:80,sz:29,moab:true,name:'MOAB',leak:60}
 ];
 var TWAVES=10;
 var gameMode='normal'; // 'normal' or 'boss'
 var activeBoss=null;   // tracks the current boss bloon object
-var $m=200,$l=20,$w=0,$s=1;
+var $m=200,$l=100,$w=0,$s=1;
 var running=false,over=false,won=false,cleared=false;
 var towers=[],farms=[],bloons=[],projs=[],parts=[],floaties=[];
 var selType=null,selObj=null,prevSnap=null;
@@ -245,9 +245,9 @@ var spawnQ=[],spawnT=0,bid=0,pid=0,lt=0;
 
 // Boss bloon tiers — escalating MOAB variants
 var BOSS_TIERS=[
-  {col:'#fbbf24',hp:400, spd:.45,rew:200,sz:34,moab:true,boss:true,name:'MOAB',tier:1},
-  {col:'#f97316',hp:900, spd:.42,rew:400,sz:38,moab:true,boss:true,name:'BFB',tier:2},
-  {col:'#dc2626',hp:2000,spd:.38,rew:800,sz:44,moab:true,boss:true,name:'ZOMG',tier:3}
+  {col:'#fbbf24',hp:400, spd:.45,rew:200,sz:34,moab:true,boss:true,name:'MOAB',tier:1,leak:40},
+  {col:'#f97316',hp:900, spd:.42,rew:400,sz:38,moab:true,boss:true,name:'BFB', tier:2,leak:70},
+  {col:'#dc2626',hp:2000,spd:.38,rew:800,sz:44,moab:true,boss:true,name:'ZOMG',tier:3,leak:100}
 ];
 
 function genWave(w){
@@ -346,7 +346,15 @@ function update(dt){
     if(b.burn>0){b.burn-=dt*sm;b.hp-=0.8*dt*sm;if(b.hp<=0){$m+=b.rew;document.getElementById('mdisp').textContent=$m;splParts(b.x,b.y,'#fb923c',8);updShop();b.dead=true;continue;}}
     var spd=b.spd;if(b.permafrost)spd*=.5;else if(b.frz>0){b.frz-=dt*sm;spd*=.12;}
     b.dist+=spd*55*dt*sm;
-    if(b.dist>=pl){b.dead=true;$l=Math.max(0,$l-1);splParts(b.x,b.y,b.col,3);document.getElementById('ldisp').textContent=$l;if($l<=0&&!over)endGame(false);}
+    if(b.dist>=pl){
+      b.dead=true;
+      var dmgTaken=b.leak||1;
+      $l=Math.max(0,$l-dmgTaken);
+      splParts(b.x,b.y,b.col,b.moab?20:4);
+      spawnFloatie(PP[PP.length-1].x,PP[PP.length-1].y-15,'-'+dmgTaken+' HP','#ef4444');
+      document.getElementById('ldisp').textContent=$l;
+      if($l<=0&&!over)endGame(false);
+    }
     else{var pp=pathPos(b.dist);b.x=pp.x;b.y=pp.y;}
   }
   bloons=bloons.filter(function(b){return !b.dead&&b.hp>0;});
@@ -902,7 +910,7 @@ function goMenu(){
 }
 
 function resetGame(){
-  $m=200;$l=20;$w=0;$s=1;running=false;over=false;won=false;cleared=false;
+  $m=200;$l=100;$w=0;$s=1;running=false;over=false;won=false;cleared=false;
   towers=[];farms=[];bloons=[];projs=[];parts=[];floaties=[];
   selType=null;selObj=null;prevSnap=null;spawnQ=[];spawnT=0;activeBoss=null;
   document.getElementById('mdisp').textContent=$m;
