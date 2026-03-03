@@ -66,7 +66,7 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
     <button class="tbtn" id="bfarm" onclick="selT('farm')"><span class="ti">🌾</span>Farm<span class="tc">💰120</span><span class="farm-tag">+$$/wave</span></button>
   </div>
   <div style="display:flex;align-items:center;gap:6px;">
-    <div id="msg">Select a tower or farm, then tap the green area!</div>
+    <div id="msg">Select a tower or farm to see placement slots!</div>
     <button id="cancelbtn" onclick="cancelSel()" style="display:none;padding:4px 9px;border-radius:7px;border:none;background:#475569;color:#fff;font-size:13px;font-weight:900;cursor:pointer;flex-shrink:0;line-height:1;" title="Cancel selection">✕</button>
   </div>
   <div id="ctrls">
@@ -81,7 +81,74 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
 const cv=document.getElementById('gc'),cx=cv.getContext('2d');
 let PP=[];
 function buildPath(){const W=cv.width,H=cv.height;PP=[{x:0,y:H*.15},{x:W*.26,y:H*.15},{x:W*.26,y:H*.46},{x:W*.63,y:H*.46},{x:W*.63,y:H*.18},{x:W*.88,y:H*.18},{x:W*.88,y:H*.76},{x:W*.38,y:H*.76},{x:W*.38,y:H*.59},{x:W*.12,y:H*.59},{x:W*.12,y:H*1.05}];}
-function doResize(){const w=Math.min(document.getElementById('canvas-container').clientWidth,480);cv.width=w;cv.height=Math.round(w*.8);buildPath();}
+function doResize(){const w=Math.min(document.getElementById('canvas-container').clientWidth,480);cv.width=w;cv.height=Math.round(w*.8);buildPath();buildSlots();}
+
+// ── Slot system ──
+let TOWER_SLOTS=[];   // {x,y,occupied:false}
+let FARM_ZONES=[];    // {x,y,occupied:false}
+
+function buildSlots(){
+  const W=cv.width, H=cv.height;
+  TOWER_SLOTS=[];
+  FARM_ZONES=[];
+
+  // Tower grid: 4 quadrants, 3×3 each = 36 candidate slots, filtered off-path
+  const QS=[ // quadrant corner offsets [startX%, startY%, cols, rows, spacingX%, spacingY%]
+    [0.01, 0.01, 3, 2, 0.115, 0.115],  // Q1 top-left
+    [0.66, 0.01, 3, 2, 0.10,  0.09 ],  // Q2 top-right
+    [0.01, 0.62, 3, 2, 0.115, 0.115],  // Q3 bottom-left
+    [0.40, 0.62, 3, 2, 0.115, 0.115],  // Q4 bottom-right
+  ];
+  for(const [sx,sy,cols,rows,spx,spy] of QS){
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const x=W*(sx+c*spx+spx/2);
+        const y=H*(sy+r*spy+spy/2);
+        if(!onPath(x,y,30)&&x>14&&y>14&&x<W-14&&y<H-14){
+          TOWER_SLOTS.push({x,y,occupied:false});
+        }
+      }
+    }
+  }
+
+  // Farm zones: 6 fixed glowing patches in grassy clearings
+  const FZ=[
+    [0.07, 0.30],[0.19, 0.52],
+    [0.45, 0.30],[0.74, 0.36],
+    [0.55, 0.65],[0.74, 0.88],
+  ];
+  for(const [fx,fy] of FZ){
+    const x=W*fx, y=H*fy;
+    if(!onPath(x,y,35)&&x>14&&y>14&&x<W-14&&y<H-14){
+      FARM_ZONES.push({x,y,occupied:false});
+    }
+  }
+}
+
+function slotOccupied(slot){
+  return towers.some(t=>t.slotIdx!==undefined&&Math.hypot(t.x-slot.x,t.y-slot.y)<5);
+}
+function zoneOccupied(zone){
+  return farms.some(f=>Math.hypot(f.x-zone.x,f.y-zone.y)<5);
+}
+function nearestTowerSlot(x,y){
+  let best=null,bestD=9999;
+  for(const s of TOWER_SLOTS){
+    if(slotOccupied(s))continue;
+    const d=Math.hypot(s.x-x,s.y-y);
+    if(d<bestD){bestD=d;best=s;}
+  }
+  return bestD<50?best:null;
+}
+function nearestFarmZone(x,y){
+  let best=null,bestD=9999;
+  for(const z of FARM_ZONES){
+    if(zoneOccupied(z))continue;
+    const d=Math.hypot(z.x-x,z.y-y);
+    if(d<bestD){bestD=d;best=z;}
+  }
+  return bestD<38?best:null;
+}
 
 // ── Tower drawing functions ──
 function drawTower(c, t, sel) {
@@ -491,20 +558,81 @@ function draw(){
   for(const f of floaties){cx.globalAlpha=f.life;cx.fillStyle=f.col;cx.font='bold 11px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(f.txt,f.x,f.y);}
   cx.globalAlpha=1;
 
-  // Placement preview
-  if(prevPos&&selType){
-    const isFarm=selType==='farm';
-    const col=isFarm?'#22c55e':(TD[selType]?.col||'#fff');
-    cx.globalAlpha=.58;cx.fillStyle=prevOk?col:'#ef4444';cx.beginPath();cx.arc(prevPos.x,prevPos.y,16,0,Math.PI*2);cx.fill();
-    if(!isFarm){cx.globalAlpha=.12;cx.fillStyle=prevOk?col:'#ef4444';cx.beginPath();cx.arc(prevPos.x,prevPos.y,TD[selType].range,0,Math.PI*2);cx.fill();}
-    cx.globalAlpha=1;
-    if(!isFarm){drawTower(cx,{x:prevPos.x,y:prevPos.y,type:selType,upA:0,upB:0},false);}
-    else{cx.font='14px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('🌾',prevPos.x,prevPos.y);}
+  // ── Tower slot overlays (shown when a tower type is selected) ──
+  if(selType&&selType!=='farm'){
+    const now2=performance.now()/1000;
+    for(const s of TOWER_SLOTS){
+      const occ=slotOccupied(s);
+      const isHover=prevPos&&Math.hypot(prevPos.x-s.x,prevPos.y-s.y)<5;
+      if(occ) continue; // don't show occupied slots
+      const pulse=0.55+0.2*Math.sin(now2*3);
+      cx.globalAlpha=isHover?0.9:pulse;
+      // Slot ring
+      cx.strokeStyle=isHover?'#f5c842':'#60a5fa';
+      cx.lineWidth=isHover?3:2;
+      cx.setLineDash([4,4]);
+      cx.beginPath();cx.arc(s.x,s.y,17,0,Math.PI*2);cx.stroke();
+      cx.setLineDash([]);
+      // Slot fill
+      cx.fillStyle=isHover?'rgba(245,200,66,0.25)':'rgba(96,165,250,0.12)';
+      cx.beginPath();cx.arc(s.x,s.y,17,0,Math.PI*2);cx.fill();
+      cx.globalAlpha=1;
+      // Show preview tower art on hovered slot
+      if(isHover){
+        drawTower(cx,{x:s.x,y:s.y,type:selType,upA:0,upB:0},false);
+      }
+    }
+    // Quadrant boundary lines (subtle)
+    cx.strokeStyle='rgba(96,165,250,0.12)';cx.lineWidth=1;cx.setLineDash([6,8]);
+    cx.beginPath();cx.moveTo(W/2,0);cx.lineTo(W/2,H);cx.stroke();
+    cx.beginPath();cx.moveTo(0,H/2);cx.lineTo(W,H/2);cx.stroke();
+    cx.setLineDash([]);
+  }
+
+  // ── Farm zone overlays (shown when Farm is selected) ──
+  if(selType==='farm'){
+    const now2=performance.now()/1000;
+    for(const z of FARM_ZONES){
+      if(zoneOccupied(z)) continue;
+      const isHover=prevPos&&Math.hypot(prevPos.x-z.x,prevPos.y-z.y)<5;
+      const pulse=0.5+0.25*Math.sin(now2*2.5);
+      // Outer glow
+      const grd=cx.createRadialGradient(z.x,z.y,8,z.x,z.y,32);
+      grd.addColorStop(0,`rgba(134,239,172,${isHover?0.5:pulse*0.6})`);
+      grd.addColorStop(1,'rgba(134,239,172,0)');
+      cx.fillStyle=grd;cx.beginPath();cx.arc(z.x,z.y,32,0,Math.PI*2);cx.fill();
+      // Soil patch circle
+      cx.fillStyle=isHover?'rgba(161,98,7,0.7)':'rgba(120,70,10,0.55)';
+      cx.beginPath();cx.arc(z.x,z.y,18,0,Math.PI*2);cx.fill();
+      // Dashed ring
+      cx.strokeStyle=isHover?'#86efac':'#4ade80';
+      cx.lineWidth=isHover?2.5:1.5;cx.setLineDash([4,3]);
+      cx.beginPath();cx.arc(z.x,z.y,20,0,Math.PI*2);cx.stroke();cx.setLineDash([]);
+      // Soil rows
+      cx.fillStyle='rgba(92,51,23,0.8)';
+      for(let r=-1;r<=1;r++)cx.fillRect(z.x-11,z.y+r*5-1,22,2);
+      // Seed icon
+      cx.font='12px serif';cx.textAlign='center';cx.textBaseline='middle';
+      cx.fillText(isHover?'🌾':'🌱',z.x,z.y-2);
+    }
   }
 }
 
 function getXY(cX,cY){const r=cv.getBoundingClientRect();return{x:(cX-r.left)*(cv.width/r.width),y:(cY-r.top)*(cv.height/r.height)};}
-function updPrev(x,y){prevPos={x,y};prevOk=!onPath(x,y)&&!anyOvlp(x,y)&&x>10&&y>10&&x<cv.width-10&&y<cv.height-10;}
+
+// Hover: snap preview to nearest valid slot/zone
+function updPrev(x,y){
+  if(selType==='farm'){
+    const z=nearestFarmZone(x,y);
+    if(z){prevPos={x:z.x,y:z.y};prevOk=true;}
+    else{prevPos={x,y};prevOk=false;}
+  } else {
+    const s=nearestTowerSlot(x,y);
+    if(s){prevPos={x:s.x,y:s.y};prevOk=true;}
+    else{prevPos={x,y};prevOk=false;}
+  }
+}
+
 cv.addEventListener('mousemove',e=>{if(selType){const p=getXY(e.clientX,e.clientY);updPrev(p.x,p.y);}});
 cv.addEventListener('mouseleave',()=>{prevPos=null;});
 cv.addEventListener('touchmove',e=>{e.preventDefault();if(selType){const t=e.touches[0],p=getXY(t.clientX,t.clientY);updPrev(p.x,p.y);}},{passive:false});
@@ -515,17 +643,23 @@ function tap(x,y){
   if(selType){
     const isFarm=selType==='farm',cost=isFarm?FARM_DEF.cost:TD[selType].cost;
     if($m<cost){setMsg('❌ Not enough money!');return;}
-    if(onPath(x,y)){setMsg('❌ Cannot place on path!');return;}
-    if(anyOvlp(x,y)){setMsg('❌ Too close to another object!');return;}
-    if(x<10||y<10||x>cv.width-10||y>cv.height-10){setMsg('❌ Too close to edge!');return;}
-    $m-=cost;document.getElementById('mdisp').textContent=$m;
-    if(isFarm)farms.push({x,y,up:0,wavesGrown:0});
-    else towers.push({x,y,type:selType,upA:0,upB:0,lf:0});
-    prevPos=null;updShop();setMsg(`✅ ${isFarm?FARM_DEF.name:TD[selType].name} placed!`);
+    if(isFarm){
+      const z=nearestFarmZone(x,y);
+      if(!z){setMsg('❌ Tap a glowing farm zone!');return;}
+      $m-=cost;document.getElementById('mdisp').textContent=$m;
+      farms.push({x:z.x,y:z.y,up:0,wavesGrown:0});
+      prevPos=null;updShop();setMsg('✅ Crop Farm planted!');
+    } else {
+      const s=nearestTowerSlot(x,y);
+      if(!s){setMsg('❌ Tap a highlighted tower slot!');return;}
+      $m-=cost;document.getElementById('mdisp').textContent=$m;
+      towers.push({x:s.x,y:s.y,type:selType,upA:0,upB:0,lf:0});
+      prevPos=null;updShop();setMsg(`✅ ${TD[selType].name} placed!`);
+    }
   } else {
     let hit=null;
-    for(const t of towers)if(Math.hypot(t.x-x,t.y-y)<21){hit=t;break;}
-    if(!hit)for(const f of farms)if(Math.hypot(f.x-x,f.y-y)<21){hit=f;break;}
+    for(const t of towers)if(Math.hypot(t.x-x,t.y-y)<22){hit=t;break;}
+    if(!hit)for(const f of farms)if(Math.hypot(f.x-x,f.y-y)<22){hit=f;break;}
     if(hit){selObj=hit;showInfo(hit);}
     else{selObj=null;document.getElementById('info').style.display='none';document.getElementById('sellbtn').style.display='none';}
   }
@@ -596,7 +730,7 @@ function selT(type){
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
   const ids={dart:'bd',cannon:'bc',freeze:'bf',sniper:'bsn',laser:'bl',bomb:'bb',farm:'bfarm'};
   if(ids[type])document.getElementById(ids[type]).classList.add('sel');
-  setMsg(`📍 Tap the grass to place ${type==='farm'?FARM_DEF.name:TD[type].name}!`);
+  setMsg(type==='farm'?'🌾 Tap a glowing soil zone to plant your farm!':`📍 Tap a highlighted slot to place ${TD[type].name}!`);
   document.getElementById('cancelbtn').style.display='inline-block';
 }
 
@@ -604,7 +738,7 @@ function cancelSel(){
   selType=null;prevPos=null;
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('cancelbtn').style.display='none';
-  setMsg('Select a tower or farm, then tap the green area!');
+  setMsg('Select a tower or farm to see placement slots!');
 }
 
 function updShop(){
@@ -637,7 +771,7 @@ function restart(){
   document.getElementById('info').style.display='none';document.getElementById('sellbtn').style.display='none';
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('cancelbtn').style.display='none';
-  setMsg('Select a tower or farm, then tap the green area!');updShop();
+  setMsg('Select a tower or farm to see placement slots!');
 }
 
 function loop(ts){const dt=Math.min((ts-lt)/1000,.05);lt=ts;update(dt);draw();requestAnimationFrame(loop);}
