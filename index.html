@@ -335,7 +335,8 @@ function update(dt){
     }
   }
 
-  if(running&&spawnQ.length===0&&bloons.length===0&&!cleared){
+  // Live-update stats panel if something is selected
+  if(selObj)showInfo(selObj);
     cleared=true;running=false;
     for(var fmi2=0;fmi2<farms.length;fmi2++){
       farms[fmi2].wavesGrown=Math.min(farms[fmi2].wavesGrown+1,3);
