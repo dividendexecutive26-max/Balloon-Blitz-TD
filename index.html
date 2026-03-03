@@ -65,7 +65,10 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
     <button class="tbtn" id="bb" onclick="selT('bomb')"><span class="ti">💥</span>Bomber<span class="tc">💰250</span></button>
     <button class="tbtn" id="bfarm" onclick="selT('farm')"><span class="ti">🌾</span>Farm<span class="tc">💰120</span><span class="farm-tag">+$$/wave</span></button>
   </div>
-  <div id="msg">Select a tower or farm, then tap the green area!</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div id="msg" style="flex:1;">Select a tower or farm, then tap the green area!</div>
+    <button id="cancelbtn" onclick="cancelSel()" style="display:none;padding:4px 9px;border-radius:7px;border:none;background:#475569;color:#fff;font-size:13px;font-weight:900;cursor:pointer;flex-shrink:0;line-height:1;" title="Cancel selection">✕</button>
+  </div>
   <div id="ctrls">
     <button class="cbtn" id="startbtn" onclick="startWave()">▶ Start Wave</button>
     <button class="cbtn" id="spdbtn" onclick="toggleSpd()">⚡ 1x</button>
@@ -510,6 +513,13 @@ function selT(type){
   if(ids[type])document.getElementById(ids[type]).classList.add('sel');
   const name=type==='farm'?FARM_DEF.name:TD[type].name;
   setMsg(`📍 Tap the grass to place ${name}!`);
+  document.getElementById('cancelbtn').style.display='inline-block';
+}
+function cancelSel(){
+  selType=null;prevPos=null;
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('cancelbtn').style.display='none';
+  setMsg('Select a tower or farm, then tap the green area!');
 }
 
 function updShop(){
