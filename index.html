@@ -96,21 +96,23 @@ function onPath(x,y,M){
 function buildSlots(){
   var W=cv.width,H=cv.height;
   TOWER_SLOTS=[];FARM_ZONES=[];
-  // Full-map grid: every 44px across whole canvas, filtered off path
-  var spacing=44,margin=22;
-  for(var gx=margin;gx<W-margin;gx+=spacing){
-    for(var gy=margin;gy<H-margin;gy+=spacing){
-      if(!onPath(gx,gy,30)){
-        TOWER_SLOTS.push({x:gx,y:gy});
+  var size=28, margin=14;
+  // Snap to grid aligned squares across full map
+  for(var gx=margin;gx<W-margin;gx+=size){
+    for(var gy=margin;gy<H-margin;gy+=size){
+      var cx2=gx+size/2, cy2=gy+size/2;
+      if(!onPath(cx2,cy2,26)){
+        TOWER_SLOTS.push({x:cx2,y:cy2,gx:gx,gy:gy,size:size});
       }
     }
   }
-  // Farm zones: denser grid of soil patches, also full map
-  var fspacing=55;
-  for(var fx=margin+10;fx<W-margin;fx+=fspacing){
-    for(var fy=margin+10;fy<H-margin;fy+=fspacing){
-      if(!onPath(fx,fy,34)){
-        FARM_ZONES.push({x:fx,y:fy});
+  // Farm zones use same grid but slightly larger cells
+  var fsize=36, fmargin=18;
+  for(var fx=fmargin;fx<W-fmargin;fx+=fsize){
+    for(var fy=fmargin;fy<H-fmargin;fy+=fsize){
+      var fcx=fx+fsize/2, fcy=fy+fsize/2;
+      if(!onPath(fcx,fcy,30)){
+        FARM_ZONES.push({x:fcx,y:fcy,gx:fx,gy:fy,size:fsize});
       }
     }
   }
@@ -459,22 +461,31 @@ function draw(){
 
   // ── TOWER SLOT OVERLAYS ──
   if(selType&&selType!=='farm'){
-    var pulse=0.55+0.2*Math.sin(now*3);
-    // Subtle quadrant lines
-    cx.strokeStyle='rgba(96,165,250,0.1)';cx.lineWidth=1;cx.setLineDash([6,8]);
-    cx.beginPath();cx.moveTo(W/2,0);cx.lineTo(W/2,H);cx.stroke();
-    cx.beginPath();cx.moveTo(0,H/2);cx.lineTo(W,H/2);cx.stroke();
-    cx.setLineDash([]);
+    var pulse=0.45+0.2*Math.sin(now*3);
     for(var si=0;si<TOWER_SLOTS.length;si++){
       var s=TOWER_SLOTS[si];if(slotTaken(s))continue;
       var isHov=prevSnap&&Math.hypot(prevSnap.x-s.x,prevSnap.y-s.y)<8;
+      var sz=s.size||28, half=sz/2;
       cx.globalAlpha=isHov?0.95:pulse;
-      cx.fillStyle=isHov?'rgba(245,200,66,0.2)':'rgba(96,165,250,0.1)';
-      cx.beginPath();cx.arc(s.x,s.y,18,0,Math.PI*2);cx.fill();
-      cx.strokeStyle=isHov?'#f5c842':'#60a5fa';cx.lineWidth=isHov?2.5:1.5;
-      cx.setLineDash([4,4]);cx.beginPath();cx.arc(s.x,s.y,18,0,Math.PI*2);cx.stroke();cx.setLineDash([]);
+      // Fill
+      cx.fillStyle=isHov?'rgba(245,200,66,0.25)':'rgba(96,165,250,0.1)';
+      cx.fillRect(s.x-half,s.y-half,sz,sz);
+      // Border
+      cx.strokeStyle=isHov?'#f5c842':'#60a5fa';
+      cx.lineWidth=isHov?2:1;
+      cx.setLineDash([3,3]);
+      cx.strokeRect(s.x-half,s.y-half,sz,sz);
+      cx.setLineDash([]);
       cx.globalAlpha=1;
-      if(isHov)drawTower(cx,{x:s.x,y:s.y,type:selType,upA:0,upB:0},false);
+    }
+    // Show hovered tower preview
+    if(prevSnap){
+      drawTower(cx,{x:prevSnap.x,y:prevSnap.y,type:selType,upA:0,upB:0},false);
+      // Range ring
+      var rng=TD[selType]?TD[selType].range:80;
+      cx.strokeStyle='rgba(255,255,255,0.2)';cx.lineWidth=1;cx.setLineDash([4,4]);
+      cx.beginPath();cx.arc(prevSnap.x,prevSnap.y,rng,0,Math.PI*2);cx.stroke();
+      cx.setLineDash([]);
     }
   }
 
@@ -483,21 +494,28 @@ function draw(){
     for(var fzi=0;fzi<FARM_ZONES.length;fzi++){
       var fz=FARM_ZONES[fzi];if(zoneTaken(fz))continue;
       var isHov2=prevSnap&&Math.hypot(prevSnap.x-fz.x,prevSnap.y-fz.y)<8;
-      var pulse2=0.5+0.25*Math.sin(now*2.5+fzi);
-      // Glow
-      var grd=cx.createRadialGradient(fz.x,fz.y,6,fz.x,fz.y,30);
-      grd.addColorStop(0,'rgba(134,239,172,'+(isHov2?0.6:pulse2*0.55)+')');
-      grd.addColorStop(1,'rgba(134,239,172,0)');
-      cx.fillStyle=grd;cx.beginPath();cx.arc(fz.x,fz.y,30,0,Math.PI*2);cx.fill();
-      // Soil
-      cx.fillStyle=isHov2?'rgba(161,98,7,0.75)':'rgba(100,58,8,0.6)';
-      cx.beginPath();cx.arc(fz.x,fz.y,17,0,Math.PI*2);cx.fill();
-      cx.strokeStyle=isHov2?'#86efac':'#4ade80';cx.lineWidth=isHov2?2.5:1.5;
-      cx.setLineDash([4,3]);cx.beginPath();cx.arc(fz.x,fz.y,19,0,Math.PI*2);cx.stroke();cx.setLineDash([]);
-      cx.fillStyle='rgba(80,40,5,0.7)';
-      for(var row=-1;row<=1;row++)cx.fillRect(fz.x-10,fz.y+row*5-1,20,2);
-      cx.font='12px serif';cx.textAlign='center';cx.textBaseline='middle';
-      cx.fillText(isHov2?'\uD83C\uDF3E':'\uD83C\uDF31',fz.x,fz.y-2);
+      var pulse2=0.4+0.25*Math.sin(now*2.2+fzi*0.4);
+      var fsz=fz.size||36, fhalf=fsz/2;
+      // Glow background
+      cx.globalAlpha=isHov2?0.9:pulse2;
+      cx.fillStyle=isHov2?'rgba(134,239,172,0.3)':'rgba(74,222,128,0.12)';
+      cx.fillRect(fz.x-fhalf,fz.y-fhalf,fsz,fsz);
+      // Soil fill
+      cx.fillStyle=isHov2?'rgba(161,98,7,0.6)':'rgba(100,60,8,0.45)';
+      cx.fillRect(fz.x-fhalf+3,fz.y-fhalf+3,fsz-6,fsz-6);
+      // Border
+      cx.strokeStyle=isHov2?'#86efac':'#4ade80';
+      cx.lineWidth=isHov2?2:1;
+      cx.setLineDash([3,3]);
+      cx.strokeRect(fz.x-fhalf,fz.y-fhalf,fsz,fsz);
+      cx.setLineDash([]);
+      cx.globalAlpha=1;
+      // Soil rows
+      cx.fillStyle='rgba(70,35,5,0.5)';
+      for(var row=-1;row<=1;row++)cx.fillRect(fz.x-fhalf+5,fz.y+row*5-1,fsz-10,2);
+      // Seed icon
+      cx.font='10px serif';cx.textAlign='center';cx.textBaseline='middle';
+      cx.fillText(isHov2?'\uD83C\uDF3E':'\uD83C\uDF31',fz.x,fz.y-1);
     }
   }
 
