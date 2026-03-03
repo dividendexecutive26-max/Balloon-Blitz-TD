@@ -317,6 +317,8 @@ var heroCooldownLeft=0;    // seconds remaining on cooldown
 var heroAbilityReady=false;
 var fortifyActive=false;   // Titan's wave double-income flag
 var pendingHeroKey=null;   // hero chosen on menu but not yet confirmed
+
+function genWave(w){
   var q=[];
   var isBossWave=gameMode==='boss'&&w%5===0;
   if(isBossWave){
@@ -664,7 +666,7 @@ function drawHero(c,h,sel){
   c.restore();
 }
 
-
+function draw(){
   var W=cv.width,H=cv.height,now=performance.now()/1000;
   cx.clearRect(0,0,W,H);
   // Grass
