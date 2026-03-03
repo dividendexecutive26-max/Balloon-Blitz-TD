@@ -316,8 +316,9 @@ function update(dt){
   parts=parts.filter(function(p){return p.life>0;});
   for(var fi=0;fi<floaties.length;fi++){floaties[fi].y+=floaties[fi].vy*sm;floaties[fi].life-=.025*sm;}
   floaties=floaties.filter(function(f){return f.life>0;});
-  // Farm income drip - pays out continuously during waves (and slowly between waves)
-  for(var fmi=0;fmi<farms.length;fmi++){
+  // Farm income drip - only pays out while wave is running and bloons are present
+  if(running && bloons.length>0){
+    for(var fmi=0;fmi<farms.length;fmi++){
     var fm=farms[fmi];
     var incPerSec=farmIncome(fm)/12; // spreads wave income over ~12 seconds
     fm.farmTimer=(fm.farmTimer||0)+dt*sm;
@@ -331,7 +332,7 @@ function update(dt){
         updShop();
       }
     }
-  }
+  } // end farm drip block
 
   if(running&&spawnQ.length===0&&bloons.length===0&&!cleared){
     cleared=true;running=false;
