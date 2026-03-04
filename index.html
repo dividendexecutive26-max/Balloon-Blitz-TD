@@ -248,48 +248,53 @@ function nearZone(x,y){
 
 var TD={
   dart:{cost:80,range:115,dmg:1,rate:1.4,col:'#4facfe',name:'Dart',desc:'Fast reliable shots',
-    pathA:{name:'Rapid Fire',levels:['Rate +40%','Rate +60%','ULTRA x3 rate'],costs:[70,90,150]},
-    pathB:{name:'Sharp Shots',levels:['Dmg x2','Dmg x3','Pierce: chain 3 targets'],costs:[80,100,180]}},
+    pathA:{name:'Rapid Fire',levels:['Rate +40%','Rate +60%','ULTRA x3 rate','Hyperspeed x2','Gatling: x5 rate'],costs:[70,90,150,600,1800]},
+    pathB:{name:'Sharp Shots',levels:['Dmg x2','Dmg x3','Pierce 3 targets','Void Pierce x5 dmg','Soul Rend: x10 dmg + chain 6'],costs:[80,100,180,700,2000]}},
   cannon:{cost:200,range:100,dmg:3,rate:.5,col:'#f97316',name:'Cannon',desc:'Explosive splash',
-    pathA:{name:'Big Bomb',levels:['Splash +50%','Splash x2','MOAB Shredder'],costs:[130,160,250]},
-    pathB:{name:'Rapid Cannon',levels:['Rate +50%','Rate +80%','Dual: +1 cluster bomb'],costs:[120,150,220]}},
-  freeze:{cost:150,range:105,dmg:0,rate:.6,col:'#67e8f9',name:'Ice',desc:'Slows balloons',
-    pathA:{name:'Deep Freeze',levels:['Freeze 3s','Freeze 5s','Permafrost'],costs:[100,130,200]},
-    pathB:{name:'Blizzard',levels:['Range +40%','Area burst','Arctic Storm'],costs:[110,140,210]}},
+    pathA:{name:'Big Bomb',levels:['Splash +50%','Splash x2','MOAB Shredder','Apocalypse: splash x5','World Ender: nuke x3 + bleed'],costs:[130,160,250,900,2500]},
+    pathB:{name:'Rapid Cannon',levels:['Rate +50%','Rate +80%','Dual cluster','Triple burst: rate x3','Siege Mode: x4 rate + splash x2'],costs:[120,150,220,800,2200]}},
+  freeze:{cost:150,range:105,dmg:0,rate:.6,col:'#67e8f9',name:'Ice',desc:'Slows & freezes',
+    pathA:{name:'Deep Freeze',levels:['Freeze 3s','Freeze 5s','Permafrost','Absolute Zero: frz 12s','Temporal Lock: perma + dmg'],costs:[100,130,200,750,2000]},
+    pathB:{name:'Blizzard',levels:['Range +40%','Range x2','Arctic Storm','Glacial Pulse: area freeze','Frostpocalypse: map-wide slow'],costs:[110,140,210,800,2200]}},
   sniper:{cost:300,range:270,dmg:5,rate:.38,col:'#c084fc',name:'Sniper',desc:'Long range high dmg',
-    pathA:{name:'Deadly Aim',levels:['Dmg x2','Dmg x3','Chain: hits nearby target'],costs:[160,200,300]},
-    pathB:{name:'Full Auto',levels:['Rate +60%','Rate x2','Infinite range'],costs:[150,190,280]}},
+    pathA:{name:'Deadly Aim',levels:['Dmg x2','Dmg x3','Chain target','Railgun: dmg x5','Annihilator: x8 dmg pierces all'],costs:[160,200,300,1000,2800]},
+    pathB:{name:'Full Auto',levels:['Rate +60%','Rate x2','Infinite range','Phantom Shots: rate x3','Death Rain: rate x5 + multi'],costs:[150,190,280,900,2400]}},
   laser:{cost:350,range:135,dmg:2,rate:2.2,col:'#f43f5e',name:'Laser',desc:'Rapid beam chains',
-    pathA:{name:'Overcharge',levels:['Dmg x2','Dmg x3','Burn DoT'],costs:[180,220,320]},
-    pathB:{name:'Chain Beam',levels:['Chain 2','Chain 4','Chain 6+MOAB'],costs:[170,210,300]}},
+    pathA:{name:'Overcharge',levels:['Dmg x2','Dmg x3','Burn DoT','Plasma Core: dmg x5','Supernova: x8 + burn all'],costs:[180,220,320,1100,3000]},
+    pathB:{name:'Chain Beam',levels:['Chain 2','Chain 4','Chain 6','Cascade: chain 10 + dmg x2','Singularity: infinite chain x3 dmg'],costs:[170,210,300,950,2600]}},
 };
 
 var FARM_DEF={cost:150,name:'Bank',baseIncome:22,
-  upgrades:['Savings Account +$15/wave','Investment Fund +$30/wave','Vault Max +$55/wave'],
-  upgCosts:[120,180,300]};
+  upgrades:['Savings Account +$15/wave','Investment Fund +$30/wave','Vault Max +$55/wave','Megabank +$100/wave','Hell Treasury +$200/wave'],
+  upgCosts:[120,180,300,800,2000]};
 
 var BT=[
-  {col:'#ef4444',hp:1,  spd:1.2, rew:1,  sz:14,name:'Imp',      leak:1},
-  {col:'#3b82f6',hp:2,  spd:1.1, rew:2,  sz:15,name:'Wisp',     leak:2},
-  {col:'#22c55e',hp:3,  spd:1.0, rew:3,  sz:16,name:'Gargoyle', leak:3},
-  {col:'#f59e0b',hp:5,  spd:.9,  rew:5,  sz:17,name:'Specter',  leak:5},
-  {col:'#a855f7',hp:8,  spd:.85, rew:8,  sz:17,name:'Wraith',   leak:8},
-  {col:'#ec4899',hp:14, spd:.8,  rew:12, sz:19,name:'Banshee',  leak:12},
-  {col:'#06b6d4',hp:25, spd:.75, rew:18, sz:21,name:'Phantom',  leak:18},
-  {col:'#f43f5e',hp:45, spd:.68, rew:25, sz:22,name:'Hellknight',leak:25},
-  {col:'#334155',hp:90, spd:.62, rew:40, sz:24,name:'Dreadlord', leak:40},
-  {col:'#fbbf24',hp:180,spd:.56, rew:80, sz:29,moab:true,name:'Archfiend',leak:60}
+  {col:'#ef4444',hp:1,   spd:1.2,  rew:1,   sz:14,name:'Imp',        leak:1},
+  {col:'#3b82f6',hp:2,   spd:1.1,  rew:2,   sz:15,name:'Wisp',       leak:2},
+  {col:'#22c55e',hp:3,   spd:1.0,  rew:3,   sz:16,name:'Gargoyle',   leak:3},
+  {col:'#f59e0b',hp:5,   spd:.9,   rew:5,   sz:17,name:'Specter',    leak:5},
+  {col:'#a855f7',hp:8,   spd:.85,  rew:8,   sz:17,name:'Wraith',     leak:8},
+  {col:'#ec4899',hp:14,  spd:.8,   rew:12,  sz:19,name:'Banshee',    leak:12},
+  {col:'#06b6d4',hp:25,  spd:.75,  rew:18,  sz:21,name:'Phantom',    leak:18},
+  {col:'#f43f5e',hp:45,  spd:.68,  rew:25,  sz:22,name:'Hellknight', leak:25},
+  {col:'#334155',hp:90,  spd:.62,  rew:40,  sz:24,name:'Dreadlord',  leak:40},
+  {col:'#fbbf24',hp:180, spd:.56,  rew:80,  sz:29,moab:true,name:'Archfiend',leak:60},
+  {col:'#7c3aed',hp:380, spd:.70,  rew:150, sz:25,name:'Voidwalker', leak:50},
+  {col:'#0ea5e9',hp:700, spd:.72,  rew:250, sz:26,name:'Riftborn',   leak:60},
+  {col:'#f43f5e',hp:1400,spd:.74,  rew:400, sz:27,name:'Abyssal',    leak:75},
+  {col:'#dc2626',hp:2800,spd:.68,  rew:700, sz:28,name:'Oblivion',   leak:90},
+  {col:'#0f172a',hp:5500,spd:.65,  rew:1200,sz:30,name:'Void Lord',  leak:100}
 ];
 
 var BOSS_TIERS=[
-  {col:'#fbbf24',hp:400,  spd:.45,rew:200, sz:34,moab:true,boss:true,name:'MOAB',     tier:0,leak:40},
-  {col:'#f97316',hp:900,  spd:.42,rew:400, sz:38,moab:true,boss:true,name:'BFB',      tier:1,leak:70},
-  {col:'#dc2626',hp:2000, spd:.38,rew:800, sz:44,moab:true,boss:true,name:'ZOMG',     tier:2,leak:100},
-  {col:'#7c3aed',hp:4500, spd:.35,rew:1500,sz:48,moab:true,boss:true,name:'DDT',      tier:3,leak:100},
-  {col:'#0e7490',hp:9000, spd:.32,rew:3000,sz:52,moab:true,boss:true,name:'BAD',      tier:4,leak:100},
-  {col:'#be185d',hp:16000,spd:.30,rew:5000,sz:56,moab:true,boss:true,name:'ULTRA',    tier:5,leak:100},
-  {col:'#064e3b',hp:28000,spd:.28,rew:8000,sz:60,moab:true,boss:true,name:'TITAN',    tier:6,leak:100},
-  {col:'#1e1b4b',hp:50000,spd:.26,rew:15000,sz:66,moab:true,boss:true,name:'LEVIATHAN',tier:7,leak:100}
+  {col:'#fbbf24',hp:600,   spd:.48,rew:300,  sz:34,moab:true,boss:true,name:'MOAB',      tier:0,leak:40},
+  {col:'#f97316',hp:1800,  spd:.44,rew:600,  sz:38,moab:true,boss:true,name:'BFB',       tier:1,leak:70},
+  {col:'#dc2626',hp:5000,  spd:.40,rew:1200, sz:44,moab:true,boss:true,name:'ZOMG',      tier:2,leak:100},
+  {col:'#7c3aed',hp:12000, spd:.38,rew:2500, sz:48,moab:true,boss:true,name:'DDT',       tier:3,leak:100},
+  {col:'#0e7490',hp:28000, spd:.35,rew:5000, sz:52,moab:true,boss:true,name:'BAD',       tier:4,leak:100},
+  {col:'#be185d',hp:65000, spd:.33,rew:10000,sz:56,moab:true,boss:true,name:'ULTRA',     tier:5,leak:100},
+  {col:'#064e3b',hp:150000,spd:.31,rew:18000,sz:62,moab:true,boss:true,name:'TITAN',     tier:6,leak:100},
+  {col:'#1e1b4b',hp:350000,spd:.29,rew:35000,sz:70,moab:true,boss:true,name:'LEVIATHAN', tier:7,leak:100}
 ];
 
 var HEROES={
@@ -330,7 +335,7 @@ var spawnQ=[],spawnT=0,bid=0,pid=0,lt=0;
 
 function farmIncome(f){
   var i=FARM_DEF.baseIncome;
-  if(f.up>=1)i+=15;if(f.up>=2)i+=30;if(f.up>=3)i+=55;
+  if(f.up>=1)i+=15;if(f.up>=2)i+=30;if(f.up>=3)i+=55;if(f.up>=4)i+=100;if(f.up>=5)i+=200;
   return i;
 }
 
@@ -340,11 +345,11 @@ function genWave(w){
   var isBossWave=isBossMode&&(w%10===0);
   if(isBossWave){
     var tier=Math.min(Math.floor(w/10)-1,BOSS_TIERS.length-1);
-    var mx=Math.min(w-2,BT.length-2),n=Math.min(8+w*2,70);
+    var mx=Math.min(Math.floor(w*0.45),13),n=Math.min(8+w*2,70);
     for(var i=0;i<n;i++)q.push(Math.min(Math.floor(Math.random()*(mx+1)),mx));
     q.push('boss:'+tier);
   } else {
-    var mx2=Math.min(w-1,BT.length-1),n2=Math.min(12+w*5,90);
+    var mx2=Math.min(Math.floor(w*0.3),12),n2=Math.min(12+w*5,90);
     for(var i=0;i<n2;i++)q.push(Math.min(Math.floor(Math.random()*(mx2+1)),mx2));
   }
   return q;
@@ -423,11 +428,26 @@ function getTowerStats(t){
   var splash=(t.type==='cannon'?28:0);
   var freezeAmt=1.8,permafrost=false,infiniteRange=false,burnMode=false,chainCount=0,clusterCount=0,nukeMode=false;
   var pa=t.upA,pb=t.upB;
-  if(t.type==='dart'){if(pa>=1)rate*=1.4;if(pa>=2)rate*=1.6;if(pa>=3)rate*=3;if(pb>=1)dmg*=2;if(pb>=2)dmg*=3;if(pb>=3)chainCount=3;}
-  if(t.type==='cannon'){if(pa>=1)splash*=1.5;if(pa>=2)splash*=2;if(pa>=3){splash*=3;nukeMode=true;}if(pb>=1)rate*=1.5;if(pb>=2)rate*=1.8;if(pb>=3)clusterCount=1;}
-  if(t.type==='freeze'){if(pa>=1)freezeAmt=3;if(pa>=2)freezeAmt=5;if(pa>=3)permafrost=true;if(pb>=1)range*=1.4;if(pb>=2)range*=1.6;if(pb>=3)range*=2;}
-  if(t.type==='sniper'){if(pa>=1)dmg*=2;if(pa>=2)dmg*=3;if(pa>=3)chainCount=1;if(pb>=1)rate*=1.6;if(pb>=2)rate*=2;if(pb>=3)infiniteRange=true;}
-  if(t.type==='laser'){if(pa>=1)dmg*=2;if(pa>=2)dmg*=3;if(pa>=3)burnMode=true;if(pb>=1)chainCount=2;if(pb>=2)chainCount=4;if(pb>=3)chainCount=6;}
+  if(t.type==='dart'){
+    if(pa>=1)rate*=1.4;if(pa>=2)rate*=1.6;if(pa>=3)rate*=3;if(pa>=4)rate*=2;if(pa>=5)rate*=2;
+    if(pb>=1)dmg*=2;if(pb>=2)dmg*=3;if(pb>=3)chainCount=3;if(pb>=4){dmg*=5;chainCount=5;}if(pb>=5){dmg*=10;chainCount=8;}
+  }
+  if(t.type==='cannon'){
+    if(pa>=1)splash*=1.5;if(pa>=2)splash*=2;if(pa>=3){splash*=3;nukeMode=true;}if(pa>=4)splash*=5;if(pa>=5){splash*=3;nukeMode=true;burnMode=true;}
+    if(pb>=1)rate*=1.5;if(pb>=2)rate*=1.8;if(pb>=3)clusterCount=1;if(pb>=4){rate*=3;clusterCount=3;}if(pb>=5){rate*=4;clusterCount=5;splash*=2;}
+  }
+  if(t.type==='freeze'){
+    if(pa>=1)freezeAmt=3;if(pa>=2)freezeAmt=5;if(pa>=3)permafrost=true;if(pa>=4)freezeAmt=12;if(pa>=5){freezeAmt=20;dmg=15;}
+    if(pb>=1)range*=1.4;if(pb>=2)range*=2;if(pb>=3)range*=2;if(pb>=4)range*=1.5;if(pb>=5){range*=2;freezeAmt=8;}
+  }
+  if(t.type==='sniper'){
+    if(pa>=1)dmg*=2;if(pa>=2)dmg*=3;if(pa>=3)chainCount=1;if(pa>=4){dmg*=5;chainCount=3;}if(pa>=5){dmg*=8;chainCount=999;}
+    if(pb>=1)rate*=1.6;if(pb>=2)rate*=2;if(pb>=3)infiniteRange=true;if(pb>=4)rate*=3;if(pb>=5){rate*=5;chainCount=5;}
+  }
+  if(t.type==='laser'){
+    if(pa>=1)dmg*=2;if(pa>=2)dmg*=3;if(pa>=3)burnMode=true;if(pa>=4)dmg*=5;if(pa>=5){dmg*=8;burnMode=true;}
+    if(pb>=1)chainCount=2;if(pb>=2)chainCount=4;if(pb>=3)chainCount=6;if(pb>=4){chainCount=10;dmg*=2;}if(pb>=5){chainCount=999;dmg*=3;}
+  }
   return{dmg:dmg,rate:rate,range:infiniteRange?9999:range,splash:splash,freezeAmt:freezeAmt,
     permafrost:permafrost,burnMode:burnMode,chainCount:chainCount,clusterCount:clusterCount,nukeMode:nukeMode};
 }
@@ -574,7 +594,7 @@ function update(dt){
   if(running&&spawnQ.length===0&&bloons.length===0&&!cleared){
     cleared=true;running=false;fortifyActive=false;
     for(var fmi2=0;fmi2<farms.length;fmi2++)farms[fmi2].wavesGrown=Math.min((farms[fmi2].wavesGrown||0)+1,3);
-    var bon=50+$w*10;$m+=bon;document.getElementById('mdisp').textContent=$m;
+    var bonBase=gameMode==='boss-hard'?100:50;var bon=bonBase+$w*(gameMode==='boss-hard'?20:10);$m+=bon;document.getElementById('mdisp').textContent=$m;
     var sb=document.getElementById('startbtn');
     sb.textContent=$w>=TWAVES?'Done!':'Next Wave';
     sb.classList.remove('on');sb.style.background='';
@@ -1411,9 +1431,9 @@ function showInfo(obj){
   var el=document.getElementById('info');el.style.display='block';
   var isFarm=!obj.type;
   if(isFarm){
-    var inc=farmIncome(obj),stages=['Branch','Established','Investment','Vault'];
-    var stage=Math.min(obj.up||0,3),earned=obj.totalEarned||0;
-    var canUpg=obj.up<3,upgCost=canUpg?FARM_DEF.upgCosts[obj.up]:0,canAfford=$m>=upgCost;
+    var inc=farmIncome(obj),stages=['Branch','Established','Investment','Vault','Megabank','Hell Treasury'];
+    var stage=Math.min(obj.up||0,5),earned=obj.totalEarned||0;
+    var canUpg=obj.up<5,upgCost=canUpg?FARM_DEF.upgCosts[obj.up]:0,canAfford=$m>=upgCost;
     el.innerHTML='<h3>&#127974; Bank &mdash; '+stages[stage]+'</h3>'
       +'<div>Earns ~$'+inc+'/wave (drips during combat)</div>'
       +'<div class="statbar">'
@@ -1426,7 +1446,7 @@ function showInfo(obj){
         :'<div style="color:#22c55e;margin-top:2px">Max Level!</div>');
   } else {
     var d=TD[obj.type],st=getTowerStats(obj);
-    var canA=obj.upA<3&&obj.upB===0,canB=obj.upB<3&&obj.upA===0;
+    var canA=obj.upA<5&&obj.upB===0,canB=obj.upB<5&&obj.upA===0;
     el.innerHTML='<h3>'+d.name+' &mdash; A:'+obj.upA+' / B:'+obj.upB+'</h3>'
       +'<div>'+d.desc+' | Rng:'+Math.round(Math.min(st.range,400))+' Dmg:'+st.dmg.toFixed(1)+' Rate:'+st.rate.toFixed(1)+'/s</div>'
       +'<div class="statbar">'
@@ -1436,12 +1456,12 @@ function showInfo(obj){
       +'</div>'
       +'<div class="upg-paths">'
       +'<div class="upg-path"><h4>&#127823; '+d.pathA.name+'</h4>'
-      +[0,1,2].map(function(i){return'<div style="font-size:9px;color:'+(obj.upA>i?'#86efac':'#94a3b8')+'">'+(obj.upA>i?'&#10003;':'&#9675;')+' '+d.pathA.levels[i]+'</div>';}).join('')
-      +(obj.upA<3?'<button class="upg-btn patha" '+(!canA||$m<d.pathA.costs[obj.upA]?'disabled':'')+' onclick="upgPath(\'A\')">'+(canA?'Upgrade $'+d.pathA.costs[obj.upA]:(obj.upB>0?'Path B active':'Max'))+'</button>':'<div style="color:#22c55e;font-size:9px">Maxed!</div>')
+      +[0,1,2,3,4].map(function(i){return'<div style="font-size:9px;color:'+(obj.upA>i?(i>=3?'#f5c842':'#86efac'):'#94a3b8')+'">'+(obj.upA>i?'&#10003;':'&#9675;')+' '+d.pathA.levels[i]+'</div>';}).join('')
+      +(obj.upA<5?'<button class="upg-btn patha" '+(!canA||$m<d.pathA.costs[obj.upA]?'disabled':'')+' onclick="upgPath(\'A\')">'+(canA?'Upgrade $'+d.pathA.costs[obj.upA]:(obj.upB>0?'Path B active':'Max'))+'</button>':'<div style="color:#f5c842;font-size:9px">&#9733; ASCENDED!</div>')
       +'</div>'
       +'<div class="upg-path"><h4>&#127825; '+d.pathB.name+'</h4>'
-      +[0,1,2].map(function(i){return'<div style="font-size:9px;color:'+(obj.upB>i?'#fdba74':'#94a3b8')+'">'+(obj.upB>i?'&#10003;':'&#9675;')+' '+d.pathB.levels[i]+'</div>';}).join('')
-      +(obj.upB<3?'<button class="upg-btn pathb" '+(!canB||$m<d.pathB.costs[obj.upB]?'disabled':'')+' onclick="upgPath(\'B\')">'+(canB?'Upgrade $'+d.pathB.costs[obj.upB]:(obj.upA>0?'Path A active':'Max'))+'</button>':'<div style="color:#fdba74;font-size:9px">Maxed!</div>')
+      +[0,1,2,3,4].map(function(i){return'<div style="font-size:9px;color:'+(obj.upB>i?(i>=3?'#fb923c':'#fdba74'):'#94a3b8')+'">'+(obj.upB>i?'&#10003;':'&#9675;')+' '+d.pathB.levels[i]+'</div>';}).join('')
+      +(obj.upB<5?'<button class="upg-btn pathb" '+(!canB||$m<d.pathB.costs[obj.upB]?'disabled':'')+' onclick="upgPath(\'B\')">'+(canB?'Upgrade $'+d.pathB.costs[obj.upB]:(obj.upA>0?'Path A active':'Max'))+'</button>':'<div style="color:#fb923c;font-size:9px">&#9733; ASCENDED!</div>')
       +'</div></div>';
   }
   document.getElementById('sellbtn').style.display='inline-block';
@@ -1461,7 +1481,7 @@ function showHeroInfo(h){
     +'<div class="upg-paths">'
     +'<div class="upg-path"><h4>&#127823; '+hd.pathA.name+'</h4>'
     +[0,1,2].map(function(i){return'<div style="font-size:9px;color:'+((h.upA||0)>i?'#86efac':'#94a3b8')+'">'+(((h.upA||0)>i)?'&#10003;':'&#9675;')+' '+hd.pathA.levels[i]+'</div>';}).join('')
-    +((h.upA||0)<3?'<button class="upg-btn patha" '+((h.upB>0||$m<hd.pathA.costs[h.upA||0])?'disabled':'')+' onclick="upgHero(\'A\')">Upgrade $'+hd.pathA.costs[h.upA||0]+'</button>':'<div style="color:#22c55e;font-size:9px">Maxed!</div>')
+    +((h.upA||0)<3?'<button class="upg-btn patha" '+((h.upB>0||$m<hd.pathA.costs[h.upA||0])?'disabled':'')+' onclick="upgHero(\'A\')">Upgrade $'+hd.pathA.costs[h.upA||0]+'</button>':'<div style="color:#f5c842;font-size:9px">&#9733; ASCENDED!</div>')
     +'</div>'
     +'<div class="upg-path"><h4 style="color:'+hd.color+'">'+hd.icon+' '+hd.pathB.name+'</h4>'
     +[0,1,2].map(function(i){return'<div style="font-size:9px;color:'+((h.upB||0)>i?hd.color:'#94a3b8')+'">'+(((h.upB||0)>i)?'&#10003;':'&#9675;')+' '+hd.pathB.levels[i]+'</div>';}).join('')
@@ -1498,16 +1518,16 @@ function liveUpdateInfo(obj){
 
   if(obj===heroUnit){
     var hd=HEROES[obj.heroKey];
-    setBtn(document.querySelector('.upg-btn.patha'), obj.upB===0&&obj.upA<3&&$m>=hd.pathA.costs[obj.upA||0]);
-    setBtn(document.querySelector('.upg-btn.pathb'), obj.upA===0&&obj.upB<3&&$m>=hd.pathB.costs[obj.upB||0]);
+    setBtn(document.querySelector('.upg-btn.patha'), obj.upB===0&&obj.upA<5&&$m>=hd.pathA.costs[obj.upA||0]);
+    setBtn(document.querySelector('.upg-btn.pathb'), obj.upA===0&&obj.upB<5&&$m>=hd.pathB.costs[obj.upB||0]);
   } else if(obj.type){
     var d=TD[obj.type];
-    setBtn(document.querySelector('.upg-btn.patha'), obj.upB===0&&obj.upA<3&&$m>=d.pathA.costs[obj.upA||0]);
-    setBtn(document.querySelector('.upg-btn.pathb'), obj.upA===0&&obj.upB<3&&$m>=d.pathB.costs[obj.upB||0]);
+    setBtn(document.querySelector('.upg-btn.patha'), obj.upB===0&&obj.upA<5&&$m>=d.pathA.costs[obj.upA||0]);
+    setBtn(document.querySelector('.upg-btn.pathb'), obj.upA===0&&obj.upB<5&&$m>=d.pathB.costs[obj.upB||0]);
   } else {
     // Bank — target by stable ID set in showInfo
     var bankBtn=document.getElementById('bankupgbtn');
-    if(bankBtn&&obj.up<3){
+    if(bankBtn&&obj.up<5){
       var canNow=$m>=FARM_DEF.upgCosts[obj.up];
       setBtn(bankBtn,canNow);
     }
@@ -1519,12 +1539,12 @@ function upgPath(path){
   var d=TD[selObj.type];
   if(path==='A'){
     if(selObj.upB>0){setMsg('Already on Path B!');return;}
-    if(selObj.upA>=3)return;
+    if(selObj.upA>=5)return;
     var cost=d.pathA.costs[selObj.upA];if($m<cost){setMsg('Not enough money!');return;}
     $m-=cost;selObj.upA++;
   } else {
     if(selObj.upA>0){setMsg('Already on Path A!');return;}
-    if(selObj.upB>=3)return;
+    if(selObj.upB>=5)return;
     var cost2=d.pathB.costs[selObj.upB];if($m<cost2){setMsg('Not enough money!');return;}
     $m-=cost2;selObj.upB++;
   }
@@ -1533,7 +1553,7 @@ function upgPath(path){
 }
 
 function upgFarm(){
-  if(!selObj||selObj.type)return;if((selObj.up||0)>=3)return;
+  if(!selObj||selObj.type)return;if((selObj.up||0)>=5)return;
   var cost=FARM_DEF.upgCosts[selObj.up||0];if($m<cost){setMsg('Not enough money!');return;}
   $m-=cost;selObj.up++;document.getElementById('mdisp').textContent=$m;
   splParts(selObj.x,selObj.y,'#86efac',10);updShop();showInfo(selObj);
