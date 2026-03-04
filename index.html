@@ -141,12 +141,12 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
 </div>
 <div id="panel">
   <div id="shop">
-    <button class="tbtn" id="bd" onclick="selT('dart')">&#127919;<br>Dart<span class="tc"><br>&#128176;80</span></button>
-    <button class="tbtn" id="bc" onclick="selT('cannon')">&#128163;<br>Cannon<span class="tc"><br>&#128176;200</span></button>
-    <button class="tbtn" id="bf" onclick="selT('freeze')">&#10052;<br>Ice<span class="tc"><br>&#128176;150</span></button>
-    <button class="tbtn" id="bsn" onclick="selT('sniper')">&#128301;<br>Sniper<span class="tc"><br>&#128176;300</span></button>
-    <button class="tbtn" id="bl" onclick="selT('laser')">&#128308;<br>Laser<span class="tc"><br>&#128176;350</span></button>
-    <button class="tbtn" id="bfarm" onclick="selT('farm')">&#127974;<br>Bank<span class="tc"><br>&#128176;150</span><span class="farm-tag">+$$/wave</span></button>
+    <button class="tbtn" id="bd" onclick="selT('dart')">&#127919;<br>Dart<span class="tc"><br>&#128176;<span id="cost-dart"></span></span></button>
+    <button class="tbtn" id="bc" onclick="selT('cannon')">&#128163;<br>Cannon<span class="tc"><br>&#128176;<span id="cost-cannon"></span></span></button>
+    <button class="tbtn" id="bf" onclick="selT('freeze')">&#10052;<br>Ice<span class="tc"><br>&#128176;<span id="cost-freeze"></span></span></button>
+    <button class="tbtn" id="bsn" onclick="selT('sniper')">&#128301;<br>Sniper<span class="tc"><br>&#128176;<span id="cost-sniper"></span></span></button>
+    <button class="tbtn" id="bl" onclick="selT('laser')">&#128308;<br>Laser<span class="tc"><br>&#128176;<span id="cost-laser"></span></span></button>
+    <button class="tbtn" id="bfarm" onclick="selT('farm')">&#127974;<br>Bank<span class="tc"><br>&#128176;<span id="cost-farm"></span></span><span class="farm-tag">+$$/wave</span></button>
     <button class="tbtn" id="bhero" onclick="selT('hero')" style="display:none;border-color:#f5c842;background:linear-gradient(135deg,#1a1a2e,#2d1b69);"><span id="heroshopicon">&#9876;</span><br><span id="heroshopname">Hero</span><span class="tc"><br><span id="heroshopcost">-</span></span></button>
   </div>
   <div style="display:flex;align-items:center;gap:6px;">
@@ -1977,6 +1977,12 @@ function renderSaveSlots(){
 function loop(ts){if(!paused){var dt=Math.min((ts-lt)/1000,.05);lt=ts;update(dt);}else{lt=ts;}draw();requestAnimationFrame(loop);}
 window.addEventListener('resize',doResize);
 doResize();updShop();lt=performance.now();
+// Populate shop costs from data (single source of truth)
+(function(){
+  var map={dart:'dart',cannon:'cannon',freeze:'freeze',sniper:'sniper',laser:'laser'};
+  for(var k in map){var el=document.getElementById('cost-'+k);if(el)el.textContent=TD[map[k]].cost;}
+  var fe=document.getElementById('cost-farm');if(fe)fe.textContent=FARM_DEF.cost;
+})();
 buildHeroGrid();
 document.getElementById('heroover').style.display='flex';
 
