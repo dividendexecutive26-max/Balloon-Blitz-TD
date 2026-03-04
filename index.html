@@ -155,6 +155,7 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
   </div>
   <div id="ctrls">
     <button class="cbtn" id="startbtn" onclick="startWave()">&#9654; Start Wave</button>
+    <button class="cbtn" id="autobtn" onclick="toggleAuto()" style="background:#374151;color:#9ca3af;">&#9654;&#9654; Auto</button>
     <button class="cbtn" id="spdbtn" onclick="toggleSpd()">&#9889; 1x</button>
     <button class="cbtn" id="pausebtn" onclick="togglePause()" style="background:#0f766e;color:#fff;">&#9646;&#9646; Pause</button>
     <button class="cbtn" id="abilitybtn" onclick="useAbility()">&#9876; Ability</button>
@@ -318,7 +319,7 @@ var HEROES={
     pathB:{name:'Guardian',levels:['+$30/wave','Lives shield','Fort Aura'],costs:[200,270,430]}}
 };
 
-var TWAVES=10,gameMode='normal',paused=false;
+var TWAVES=10,gameMode='normal',paused=false,autoPlay=false;
 var selectedHeroKey=null,pendingHeroKey=null;
 var heroUnit=null,heroCooldownLeft=0,heroAbilityReady=false,fortifyActive=false;
 var $m=200,$l=100,$w=0,$s=1;
@@ -578,7 +579,8 @@ function update(dt){
     sb.textContent=$w>=TWAVES?'Done!':'Next Wave';
     sb.classList.remove('on');sb.style.background='';
     setMsg('Wave '+$w+' cleared! +$'+bon+' bonus!');updShop();
-    if($w>=TWAVES)setTimeout(function(){endGame(true);},800);
+    if($w>=TWAVES){setTimeout(function(){endGame(true);},800);}
+    else if(autoPlay){setTimeout(function(){if(!running&&!over&&!won&&!paused)startWave();},1200);}
   }
 
   if(selObj)liveUpdateInfo(selObj);
@@ -1674,6 +1676,21 @@ function togglePause(){
     setMsg('Resumed!');
   }
 }
+function toggleAuto(){
+  autoPlay=!autoPlay;
+  var btn=document.getElementById('autobtn');
+  if(autoPlay){
+    btn.style.background='#16a34a';btn.style.color='#fff';
+    btn.textContent='⏵⏵ Auto: ON';
+    setMsg('Auto-play on — waves start automatically!');
+    // If between waves right now, kick off immediately
+    if(!running&&!over&&!won&&$w<TWAVES&&cleared){setTimeout(function(){if(!running&&!over&&!won&&!paused)startWave();},800);}
+  } else {
+    btn.style.background='#374151';btn.style.color='#9ca3af';
+    btn.textContent='⏵⏵ Auto';
+    setMsg('Auto-play off.');
+  }
+}
 function startWave(){
   if(over||won||running)return;if($w>=TWAVES)return;
   $w++;cleared=false;activeBoss=null;cancelSel();updateBossBar();
@@ -1757,7 +1774,7 @@ function goMenu(){
 }
 
 function resetGame(){
-  $m=200;$l=100;$w=0;$s=1;paused=false;running=false;over=false;won=false;cleared=false;
+  $m=200;$l=100;$w=0;$s=1;paused=false;autoPlay=false;running=false;over=false;won=false;cleared=false;
   towers=[];farms=[];bloons=[];projs=[];parts=[];floaties=[];
   selType=null;selObj=null;prevSnap=null;spawnQ=[];spawnT=0;
   activeBoss=null;heroUnit=null;heroAbilityReady=false;heroCooldownLeft=0;fortifyActive=false;
@@ -1767,6 +1784,7 @@ function resetGame(){
   document.getElementById('wmaxdisp').textContent=TWAVES;
   document.getElementById('startbtn').textContent='Start Wave';document.getElementById('startbtn').classList.remove('on');document.getElementById('startbtn').style.background='';
   document.getElementById('spdbtn').textContent='⚡ 1x';
+  var ab=document.getElementById('autobtn');if(ab){ab.style.background='#374151';ab.style.color='#9ca3af';ab.textContent='⏵⏵ Auto';}
   var pb=document.getElementById('pausebtn');pb.textContent='⏸ Pause';pb.style.background='#0f766e';
   document.getElementById('abilitybtn').style.display='none';
   document.getElementById('info').style.display='none';document.getElementById('sellbtn').style.display='none';
