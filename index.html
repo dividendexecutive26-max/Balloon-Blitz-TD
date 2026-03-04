@@ -37,8 +37,8 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
 .overlay h2{font-size:26px;font-weight:900;}.overlay p{color:#fff;font-size:13px;}
 .obtn{padding:10px 24px;border-radius:10px;border:none;background:#f5c842;color:#1a1a2e;font-size:14px;font-weight:900;cursor:pointer;}
 #landover,#heroover{background:linear-gradient(160deg,#0f1b35 0%,#1a1a2e 60%,#0f0f1a 100%);overflow-y:auto;}
-.mode-cards{display:flex;gap:12px;justify-content:center;margin-top:4px;}
-.mode-card{flex:1;max-width:155px;border-radius:13px;padding:14px 9px;cursor:pointer;border:3px solid transparent;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.mode-cards{display:flex;gap:8px;justify-content:center;margin-top:4px;flex-wrap:nowrap;}
+.mode-card{flex:1;max-width:130px;border-radius:13px;padding:12px 7px;cursor:pointer;border:3px solid transparent;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
 .mode-card:active{transform:scale(.97);}
 .mode-card.normal{background:linear-gradient(135deg,#1e3a5f,#0f3460);border-color:#4facfe;}
 .mode-card.normal:hover{border-color:#93c5fd;box-shadow:0 0 16px rgba(79,172,254,.35);}
@@ -100,14 +100,20 @@ canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
       <div class="mode-card normal" onclick="startGame('normal')">
         <div class="mode-icon">&#127919;</div>
         <div class="mode-title">Normal</div>
-        <div class="mode-desc">10 waves of escalating balloons. Classic TD.</div>
+        <div class="mode-desc">10 waves of escalating enemies. Classic TD.</div>
         <div class="mode-badge">10 WAVES</div>
       </div>
-      <div class="mode-card boss" onclick="startGame('boss')">
+      <div class="mode-card boss" onclick="startGame('boss-easy')" style="background:linear-gradient(135deg,#1c3a0f,#2d5a1a);border-color:#4ade80;">
+        <div class="mode-icon">&#128520;</div>
+        <div class="mode-title" style="color:#86efac;">Boss — Easy</div>
+        <div class="mode-desc">40 waves. Bosses every 10 waves. A tough but fair challenge.</div>
+        <div class="mode-badge" style="background:#14532d;color:#86efac;">40 WAVES &bull; 4 BOSSES</div>
+      </div>
+      <div class="mode-card boss" onclick="startGame('boss-hard')">
         <div class="mode-icon">&#128163;</div>
-        <div class="mode-title">Boss Mode</div>
-        <div class="mode-desc">15 waves. MOAB bosses every 5 waves.</div>
-        <div class="mode-badge">15 WAVES &bull; BOSS</div>
+        <div class="mode-title">Boss — Hard</div>
+        <div class="mode-desc">80 waves. Bosses every 10 waves. Relentless escalation.</div>
+        <div class="mode-badge">80 WAVES &bull; 8 BOSSES</div>
       </div>
     </div>
     <button style="margin-top:6px;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer;" onclick="goHeroSelect()">&larr; Back</button>
@@ -254,9 +260,14 @@ var BT=[
 ];
 
 var BOSS_TIERS=[
-  {col:'#fbbf24',hp:400, spd:.45,rew:200,sz:34,moab:true,boss:true,name:'MOAB',tier:1,leak:40},
-  {col:'#f97316',hp:900, spd:.42,rew:400,sz:38,moab:true,boss:true,name:'BFB', tier:2,leak:70},
-  {col:'#dc2626',hp:2000,spd:.38,rew:800,sz:44,moab:true,boss:true,name:'ZOMG',tier:3,leak:100}
+  {col:'#fbbf24',hp:400,  spd:.45,rew:200, sz:34,moab:true,boss:true,name:'MOAB',     tier:0,leak:40},
+  {col:'#f97316',hp:900,  spd:.42,rew:400, sz:38,moab:true,boss:true,name:'BFB',      tier:1,leak:70},
+  {col:'#dc2626',hp:2000, spd:.38,rew:800, sz:44,moab:true,boss:true,name:'ZOMG',     tier:2,leak:100},
+  {col:'#7c3aed',hp:4500, spd:.35,rew:1500,sz:48,moab:true,boss:true,name:'DDT',      tier:3,leak:100},
+  {col:'#0e7490',hp:9000, spd:.32,rew:3000,sz:52,moab:true,boss:true,name:'BAD',      tier:4,leak:100},
+  {col:'#be185d',hp:16000,spd:.30,rew:5000,sz:56,moab:true,boss:true,name:'ULTRA',    tier:5,leak:100},
+  {col:'#064e3b',hp:28000,spd:.28,rew:8000,sz:60,moab:true,boss:true,name:'TITAN',    tier:6,leak:100},
+  {col:'#1e1b4b',hp:50000,spd:.26,rew:15000,sz:66,moab:true,boss:true,name:'LEVIATHAN',tier:7,leak:100}
 ];
 
 var HEROES={
@@ -303,10 +314,11 @@ function farmIncome(f){
 
 function genWave(w){
   var q=[];
-  var isBossWave=gameMode==='boss'&&(w===10||w===15);
+  var isBossMode=gameMode==='boss-easy'||gameMode==='boss-hard';
+  var isBossWave=isBossMode&&(w%10===0);
   if(isBossWave){
-    var tier=w===15?2:1; // wave 10=BFB, wave 15=ZOMG
-    var mx=Math.min(w-2,BT.length-2),n=8+w*3;
+    var tier=Math.min(Math.floor(w/10)-1,BOSS_TIERS.length-1);
+    var mx=Math.min(w-2,BT.length-2),n=8+w*2;
     for(var i=0;i<n;i++)q.push(Math.min(Math.floor(Math.random()*(mx+1)),mx));
     q.push('boss:'+tier);
   } else {
@@ -549,7 +561,8 @@ function update(dt){
 function endGame(w){
   if(w){
     won=true;
-    document.getElementById('wintext').textContent=gameMode==='boss'?'All 15 waves defeated! The ZOMG falls!':'All 10 waves defeated!';
+    var winMsg=gameMode==='boss-hard'?'All 80 waves defeated! The Leviathan falls!':gameMode==='boss-easy'?'All 40 waves defeated! The bosses are slain!':'All 10 waves defeated!';
+    document.getElementById('wintext').textContent=winMsg;
     document.getElementById('winover').style.display='flex';
   } else {
     over=true;
@@ -1553,12 +1566,13 @@ function startWave(){
   spawnQ=genWave($w);spawnT=0;running=true;
   document.getElementById('wdisp').textContent=$w;
   var sb=document.getElementById('startbtn');sb.textContent='Wave '+$w+'/'+TWAVES;sb.classList.add('on');
-  var isBossWave=gameMode==='boss'&&($w===10||$w===15);
+  var isBossMode=gameMode==='boss-easy'||gameMode==='boss-hard';
+  var isBossWave=isBossMode&&($w%10===0);
   if(isBossWave){
-    var tier=$w===15?2:1; // wave 10=BFB(1), wave 15=ZOMG(2)
-    setMsg('BOSS WAVE '+$w+' — '+BOSS_TIERS[tier].name+' incoming!');sb.style.background='#7f1d1d';
+    var tier=Math.min(Math.floor($w/10)-1,BOSS_TIERS.length-1);
+    setMsg('💀 BOSS WAVE '+$w+' — '+BOSS_TIERS[tier].name+' incoming!');sb.style.background='#7f1d1d';
   } else {
-    setMsg('Wave '+$w+' — '+BT[Math.min($w-1,BT.length-1)].name+' balloons!');sb.style.background='';
+    setMsg('Wave '+$w+' — '+BT[Math.min($w-1,BT.length-1)].name+' incoming!');sb.style.background='';
   }
 }
 
@@ -1602,9 +1616,13 @@ function goHeroSelect(){
 }
 
 function startGame(mode){
-  gameMode=mode;TWAVES=mode==='boss'?15:10;
+  gameMode=mode;
+  if(mode==='boss-easy') TWAVES=40;
+  else if(mode==='boss-hard') TWAVES=80;
+  else TWAVES=10;
+  var isBoss=mode==='boss-easy'||mode==='boss-hard';
   document.getElementById('landover').style.display='none';
-  document.getElementById('hdr').style.borderBottomColor=mode==='boss'?'#7f1d1d':'#0f3460';
+  document.getElementById('hdr').style.borderBottomColor=isBoss?'#7f1d1d':'#0f3460';
   resetGame();
 }
 
